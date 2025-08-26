@@ -67,12 +67,8 @@
     auth = "password";
     # Generate with: mkpasswd -m bcrypt
     hashedPassword = "$2b$05$yurNJ8IIqrz8a64VPGdKgOyJhW.glo7tYAAN00bnuqaXZCsmO9/t2";
-    extensions = [
-      "esbenp.prettier-vscode"
-      "eamodio.gitlens"
-      "mhutchie.git-graph"
-      "dracula-theme.theme-dracula"
-    ];
+    # no extensions field here — code-server doesn’t support it in the module
+    # You can still install extensions via UI or CLI (below).
   };
 
   programs.direnv.enable = true;
