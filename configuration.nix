@@ -62,14 +62,15 @@
   services.code-server = {
     enable = true;
     user = "spawnhouse";
-    host = "0.0.0.0";
+    host = "0.0.0.0";   # use "127.0.0.1" if you prefer ssh tunneling only
     port = 8443;
     auth = "password";
-    # Generate with: mkpasswd -m bcrypt
-    password = "Temp12345!";
-    # hashedPassword = "$2b$05$ynEQCbS4oBnoUNW.sCCcxuYKJe8Q8NmaT.d9sEI4xzQS6Wq/PFlDG";
-    # no extensions field here — code-server doesn’t support it in the module
-    # You can still install extensions via UI or CLI (below).
+    hashedPassword = "$2b$05$LreBxASs1539Wg9ja/5C3uuAtRMo9kdkC.EfZHflEDNov7dRVRPlW";
+  };
+  # Clear conflicting env vars so only hashedPassword is respected
+  systemd.services.code-server.environment = {
+    PASSWORD = lib.mkForce "";
+    HASHED_PASSWORD = lib.mkForce "";
   };
 
   programs.direnv.enable = true;
