@@ -66,7 +66,7 @@
     port = 8443;
     auth = "password";
     # Generate with: mkpasswd -m bcrypt
-    hashedPassword = "$2b$05$yurNJ8IIqrz8a64VPGdKgOyJhW.glo7tYAAN00bnuqaXZCsmO9/t2";
+    hashedPassword = "$2b$05$n/9mMHLYqrKQiKVwAmRMmOIyzOyR9fnxQDZV0HSK343jshoVF6Qva";
     # no extensions field here — code-server doesn’t support it in the module
     # You can still install extensions via UI or CLI (below).
   };
