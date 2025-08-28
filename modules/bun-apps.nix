@@ -17,7 +17,7 @@ let
     # shellcheck disable=SC1090
     . "$envfile"
 
-    # Require REPO and set defaults without relying on ${var+} expansions
+    # Require REPO and set defaults without relying on parameter-expansion tricks
     set +u
     if [ -z "$REPO" ]; then
       echo "Set REPO in $envfile" >&2
