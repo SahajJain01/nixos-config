@@ -49,7 +49,7 @@
       port = 8787;
       path = "/sync";
       tokenFile = "/etc/bun-apps/webhook-secret";
-      domain = deploy.sahajjain.com;
+      domain = "deploy.sahajjain.com";
     };
   };
 }
