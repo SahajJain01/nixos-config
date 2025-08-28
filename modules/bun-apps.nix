@@ -4,8 +4,12 @@ let
 
   prepareScript = pkgs.writeShellScript "bun-app-prepare" ''
     set -euo pipefail
-    inst="${1:?instance}"
-    envfile="/etc/bun-apps/${inst}.env"
+    if [ "$#" -lt 1 ]; then
+      echo "usage: bun-app-prepare <instance>" >&2
+      exit 1
+    fi
+    inst="$1"
+    envfile="/etc/bun-apps/$inst.env"
     if [ ! -f "$envfile" ]; then
       echo "env file not found: $envfile" >&2
       exit 1
@@ -13,24 +17,30 @@ let
     # shellcheck disable=SC1090
     . "$envfile"
 
-    : "${REPO:?Set REPO in $envfile}"
-    BRANCH="${BRANCH:-main}"
-    SUBDIR="${SUBDIR:-.}"
+    # Require REPO and set defaults without relying on ${var+} expansions
+    set +u
+    if [ -z "$REPO" ]; then
+      echo "Set REPO in $envfile" >&2
+      exit 1
+    fi
+    if [ -z "$BRANCH" ]; then BRANCH=main; fi
+    if [ -z "$SUBDIR" ]; then SUBDIR=.; fi
+    set -u
 
-    basedir="/var/lib/bun-apps/${inst}"
-    srcdir="${basedir}/src"
-    workdir="${srcdir}/${SUBDIR}"
+    basedir="/var/lib/bun-apps/$inst"
+    srcdir="$basedir/src"
+    workdir="$srcdir/$SUBDIR"
 
     mkdir -p "$basedir" "$srcdir"
 
-    if [ ! -d "${srcdir}/.git" ]; then
+    if [ ! -d "$srcdir/.git" ]; then
       echo "Cloning $REPO (branch $BRANCH) into $srcdir"
       git clone --depth 1 --branch "$BRANCH" "$REPO" "$srcdir"
     else
       echo "Updating repo in $srcdir"
       git -C "$srcdir" fetch --depth 1 origin "$BRANCH" || git -C "$srcdir" fetch origin "$BRANCH"
       git -C "$srcdir" checkout "$BRANCH"
-      git -C "$srcdir" reset --hard "origin/${BRANCH}" || git -C "$srcdir" pull --ff-only
+      git -C "$srcdir" reset --hard "origin/$BRANCH" || git -C "$srcdir" pull --ff-only
     fi
 
     if [ ! -d "$workdir" ]; then
@@ -42,30 +52,37 @@ let
     cd "$workdir"
     # Don't fail if lockfile types differ; let bun handle it
     ${bun}/bin/bun install || true
-    if [ -n "${BUILD_CMD:-}" ]; then
-      echo "Building with: ${BUILD_CMD}"
-      bash -lc "${BUILD_CMD}"
+    set +u
+    if [ -n "$BUILD_CMD" ]; then
+      echo "Building with: $BUILD_CMD"
+      bash -lc "$BUILD_CMD"
     fi
+    set -u
   '';
 
   runScript = pkgs.writeShellScript "bun-app-run" ''
     set -euo pipefail
-    inst="${1:?instance}"
-    envfile="/etc/bun-apps/${inst}.env"
+    if [ "$#" -lt 1 ]; then
+      echo "usage: bun-app-run <instance>" >&2
+      exit 1
+    fi
+    inst="$1"
+    envfile="/etc/bun-apps/$inst.env"
     # shellcheck disable=SC1090
     . "$envfile"
 
-    BRANCH="${BRANCH:-main}"
-    SUBDIR="${SUBDIR:-.}"
-    PORT="${PORT:-3000}"
-    START_CMD="${START_CMD:-bun run start}"
+    set +u
+    if [ -z "$SUBDIR" ]; then SUBDIR=.; fi
+    if [ -z "$PORT" ]; then PORT=3000; fi
+    if [ -z "$START_CMD" ]; then START_CMD='bun run start'; fi
+    set -u
 
-    workdir="/var/lib/bun-apps/${inst}/src/${SUBDIR}"
+    workdir="/var/lib/bun-apps/$inst/src/$SUBDIR"
     cd "$workdir"
 
     echo "Starting $inst on port $PORT"
     export PORT
-    exec bash -lc "exec ${START_CMD}"
+    exec bash -lc "exec $START_CMD"
   '';
 
   deployScript = pkgs.writeShellScriptBin "deploy-bun" ''
@@ -81,38 +98,38 @@ let
     port="$1"; shift
     subdir="$1"; shift
     startcmd="$1"; shift
-    domain="${1-}"
+    if [ "$#" -ge 1 ]; then domain="$1"; else domain=""; fi
 
     envdir=/etc/bun-apps
     caddydir=/etc/caddy/Caddyfile.d
     mkdir -p "$envdir" "$caddydir"
 
-    envfile="$envdir/${name}.env"
+    envfile="$envdir/$name.env"
     if [ -f "$envfile" ]; then
       echo "Updating existing app env: $envfile"
     else
       echo "Creating app env: $envfile"
     fi
     cat >"$envfile" <<EOF
-REPO=${repo}
-BRANCH=${branch}
-PORT=${port}
-SUBDIR=${subdir}
-START_CMD=${startcmd}
+REPO=$(printf "%q" "$repo")
+BRANCH=$(printf "%q" "$branch")
+PORT=$(printf "%q" "$port")
+SUBDIR=$(printf "%q" "$subdir")
+START_CMD=$(printf "%q" "$startcmd")
 EOF
 
     if [ -n "$domain" ]; then
-      cat >"$caddydir/${name}.caddy" <<CAD
-${domain} {
-  reverse_proxy 127.0.0.1:${port}
+      cat >"$caddydir/$name.caddy" <<CAD
+$domain {
+  reverse_proxy 127.0.0.1:$port
 }
 CAD
       systemctl reload caddy || true
-      echo "Caddy vhost created for ${domain}"
+      echo "Caddy vhost created for $domain"
     fi
 
-    systemctl enable --now bun-app@"${name}".service
-    systemctl status --no-pager bun-app@"${name}".service || true
+    systemctl enable --now bun-app@"$name".service
+    systemctl status --no-pager bun-app@"$name".service || true
   '';
 
   removeScript = pkgs.writeShellScriptBin "remove-bun" ''
@@ -123,17 +140,17 @@ CAD
     fi
     name="$1"; shift
     purge=0
-    if [ "${1-}" = "--purge" ]; then purge=1; fi
+    if [ "$#" -ge 1 ] && [ "$1" = "--purge" ]; then purge=1; fi
 
-    systemctl disable --now bun-app@"${name}".service || true
-    rm -f "/etc/bun-apps/${name}.env" || true
-    rm -f "/etc/caddy/Caddyfile.d/${name}.caddy" || true
+    systemctl disable --now bun-app@"$name".service || true
+    rm -f "/etc/bun-apps/$name.env" || true
+    rm -f "/etc/caddy/Caddyfile.d/$name.caddy" || true
     systemctl reload caddy || true
     if [ "$purge" -eq 1 ]; then
-      rm -rf "/var/lib/bun-apps/${name}"
-      echo "Purged /var/lib/bun-apps/${name}"
+      rm -rf "/var/lib/bun-apps/$name"
+      echo "Purged /var/lib/bun-apps/$name"
     fi
-    echo "Removed app ${name}"
+    echo "Removed app $name"
   '';
 in
 {
@@ -164,10 +181,7 @@ in
     environment.etc."caddy/Caddyfile.d/.keep".text = "";
     environment.etc."bun-apps/.keep".text = "";
 
-    # Firewall for HTTP/HTTPS and app ports (reverse proxied)
-    networking.firewall.allowedTCPPorts = lib.mkMerge [
-      (lib.mkDefault [ 80 443 ])
-    ];
+    # Firewall ports should be handled at the host level.
 
     # Systemd template for Bun apps
     systemd.services."bun-app@" = {
