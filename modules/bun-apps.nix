@@ -219,8 +219,8 @@ in
           shopt -s nullglob
           for f in /etc/bun-apps/*.env; do
             name="$(basename "$f" .env)"
-            echo "Auto-starting bun-app@${name}"
-            systemctl start --no-block "bun-app@${name}.service" || true
+            echo "Auto-starting bun-app@$name"
+            systemctl start --no-block "bun-app@$name.service" || true
           done
         '';
         RemainAfterExit = true;
