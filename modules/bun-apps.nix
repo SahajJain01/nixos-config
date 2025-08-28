@@ -128,7 +128,7 @@ CAD
       echo "Caddy vhost created for $domain"
     fi
 
-    systemctl enable --now bun-app@"$name".service
+    systemctl start bun-app@"$name".service
     systemctl status --no-pager bun-app@"$name".service || true
   '';
 
@@ -204,6 +204,27 @@ in
       # Provide PATH with git and bun available
       path = [ pkgs.coreutils pkgs.bash pkgs.git bun ];
       # Journal logs make it easy: journalctl -u bun-app@myapp -f
+      wantedBy = [ "multi-user.target" ];
+    };
+
+    # Auto-start all declared envs at boot without needing systemctl enable
+    systemd.services.bun-apps-autostart = {
+      description = "Start all bun-app@ instances for /etc/bun-apps/*.env";
+      after = [ "network-online.target" ];
+      wants = [ "network-online.target" ];
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = pkgs.writeShellScript "bun-apps-autostart" ''
+          set -euo pipefail
+          shopt -s nullglob
+          for f in /etc/bun-apps/*.env; do
+            name="$(basename "$f" .env)"
+            echo "Auto-starting bun-app@${name}"
+            systemctl start --no-block "bun-app@${name}.service" || true
+          done
+        '';
+        RemainAfterExit = true;
+      };
       wantedBy = [ "multi-user.target" ];
     };
   };
