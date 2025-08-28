@@ -33,5 +33,23 @@
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   system.stateVersion = "25.05";
-}
 
+  # Bun monorepo auto-deployer. Fill in your repo URL and optionally a webhook domain.
+  # This replaces the old deploy-bun flow with a repo-driven deploy.
+  services.bunMonorepo = {
+    enable = true;
+    repoUrl = "https://github.com/SahajJain01/bun-apps.git";
+    branch = "main";
+    appsDir = "apps";
+    portBase = 3000;
+    portRange = 1000;
+    webhook = {
+      enable = true;
+      listenAddress = "127.0.0.1"; # keep local; expose via Caddy domain below
+      port = 8787;
+      path = "/sync";
+      tokenFile = "/etc/bun-apps/webhook-secret";
+      domain = deploy.sahajjain.com;
+    };
+  };
+}
