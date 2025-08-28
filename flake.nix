@@ -14,9 +14,9 @@
     in {
       nixosConfigurations = {
         nixos = nixpkgs.lib.nixosSystem {
-          system = "aarch64-linux"; # Oracle ARM
+          system = "aarch64-linux"; # aarch64 NixOS
           modules = [
-            ./hosts/oracle-arm
+            ./hosts/nixos
           ];
         };
       };

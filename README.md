@@ -32,14 +32,14 @@ Notes:
 
 ```
 # On the server (aarch64 NixOS), from this repo:
-sudo nixos-rebuild switch --flake .#oracle-arm
+sudo nixos-rebuild switch --flake .#nixos
 ```
 
 If your machine has a different host name or architecture, adjust `flake.nix` accordingly.
 
 ## Layout
 
-- `flake.nix` – flake entry and `nixosConfigurations.oracle-arm`.
-- `hosts/oracle-arm/default.nix` – main module for this host.
-- `hosts/oracle-arm/hardware-configuration.nix` – generated hardware profile.
+- `flake.nix` – flake entry and `nixosConfigurations.nixos`.
+- `hosts/nixos/default.nix` – main module for this host.
+- `hosts/nixos/hardware-configuration.nix` – generated hardware profile.
 - `modules/bun-apps.nix` – reusable Bun/Caddy deploy module.
