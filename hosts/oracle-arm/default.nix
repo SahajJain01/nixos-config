@@ -7,7 +7,7 @@
   ];
 
   # Basic host identity and SSH
-  networking.hostName = "oracle-arm";
+  networking.hostName = "nixos";
   services.openssh = {
     enable = true;
     settings = {

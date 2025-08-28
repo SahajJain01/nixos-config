@@ -13,7 +13,7 @@
       forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f system);
     in {
       nixosConfigurations = {
-        oracle-arm = nixpkgs.lib.nixosSystem {
+        nixos = nixpkgs.lib.nixosSystem {
           system = "aarch64-linux"; # Oracle ARM
           modules = [
             ./hosts/oracle-arm
