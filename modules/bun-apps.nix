@@ -243,7 +243,7 @@ in
             case "$REPO_URL" in
               https://*)
                 token="$(cat "$HTTPS_TOKEN_FILE")"
-                repopath="${REPO_URL#https://}"
+                repopath="''${REPO_URL#https://}"
                 url_use="https://${cfg.repoHttpsUser}:$token@$repopath"
                 ;;
             esac
