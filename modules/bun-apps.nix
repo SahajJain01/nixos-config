@@ -11,18 +11,11 @@ let
       exit 1
     fi
     inst="$1"
-    envfile="/etc/bun-apps/$inst.env"
-    if [ ! -f "$envfile" ]; then
-      echo "env file not found: $envfile" >&2
-      exit 1
-    fi
-    # shellcheck disable=SC1090
-    . "$envfile"
 
     # Require REPO and set defaults without relying on parameter-expansion tricks
     set +u
     if [ -z "$REPO" ]; then
-      echo "Set REPO in $envfile" >&2
+      echo "REPO not set in environment for $inst" >&2
       exit 1
     fi
     if [ -z "$BRANCH" ]; then BRANCH=main; fi
@@ -79,9 +72,6 @@ let
       exit 1
     fi
     inst="$1"
-    envfile="/etc/bun-apps/$inst.env"
-    # shellcheck disable=SC1090
-    . "$envfile"
 
     set +u
     if [ -z "$SUBDIR" ]; then SUBDIR=.; fi
