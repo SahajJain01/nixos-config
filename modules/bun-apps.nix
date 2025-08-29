@@ -211,7 +211,7 @@ in
         RestartSec = 3;
       };
       # Provide PATH with git and bun available
-      path = [ pkgs.coreutils pkgs.bash pkgs.git bun ];
+      path = [ pkgs.coreutils pkgs.bash pkgs.git pkgs.openssh bun ];
       # Journal logs make it easy: journalctl -u bun-app@myapp -f
       # Do not add wantedBy for template units; instances are started by the sync service
     };
@@ -328,7 +328,7 @@ CAD
         '');
       };
       wantedBy = [ "multi-user.target" ];
-      path = [ pkgs.coreutils pkgs.bash pkgs.git pkgs.jq pkgs.gnugrep pkgs.gawk bun ];
+      path = [ pkgs.coreutils pkgs.bash pkgs.git pkgs.openssh pkgs.jq pkgs.gnugrep pkgs.gawk bun ];
     };
 
     # Optional webhook to trigger sync via HTTP (secured by token)
