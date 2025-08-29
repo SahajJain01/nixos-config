@@ -319,7 +319,8 @@ CAD
             fi
 
             systemctl reload caddy || true
-            systemctl start "bun-app@$name.service"
+            # Start or restart the app, but do not fail the whole sync on a single app error
+            systemctl restart "bun-app@$name.service" || true
           done
 
           if [ "$found" = 0 ]; then
