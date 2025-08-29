@@ -103,6 +103,30 @@ let
 
   # Placeholders for new monorepo features; actual scripts defined in config phase
   monorepoSyncPlaceholder = 0;
+
+  # Webhook server script (Bun JS) written to a file to avoid Nix string quoting pitfalls
+  webhookJs = pkgs.writeText "bun-monorepo-webhook.js"
+    "(async()=>{\n"
+    + "  const f = process.env.TOKEN_FILE || '/etc/bun-apps/webhook-secret';\n"
+    + "  const p = process.env.WEBHOOK_PATH || '/sync';\n"
+    + "  const h = process.env.LISTEN_ADDR || '127.0.0.1';\n"
+    + "  const port = Number(process.env.LISTEN_PORT || 8787);\n"
+    + "  async function readToken(){ try { return (await Bun.file(f).text()).trim(); } catch { return ''; } }\n"
+    + "  Bun.serve({ hostname: h, port, async fetch(req){\n"
+    + "    const u = new URL(req.url);\n"
+    + "    if (req.method !== 'POST' || u.pathname !== p) return new Response('Not Found', { status: 404 });\n"
+    + "    const s = req.headers.get('x-webhook-token') || u.searchParams.get('token') || '';\n"
+    + "    const e = await readToken();\n"
+    + "    if (e && s !== e) return new Response('Unauthorized', { status: 401 });\n"
+    + "    try {\n"
+    + "      const r = Bun.spawnSync(['/run/current-system/sw/bin/systemctl','start','bun-monorepo-sync.service']);\n"
+    + "      if (r.success) return new Response('ok\\n');\n"
+    + "      return new Response(r.stderr.toString(), { status: 500 });\n"
+    + "    } catch (err) {\n"
+    + "      return new Response('error\\n', { status: 500 });\n"
+    + "    }\n"
+    + "  }});\n"
+    + "})();\n";
 in
 {
   options.services.bunMonorepo = {
@@ -280,7 +304,7 @@ CAD
       wants = [ "network-online.target" ];
       serviceConfig = {
         Type = "simple";
-        ExecStart = ''${bun}/bin/bun -e "(async()=>{const f=process.env.TOKEN_FILE||'/etc/bun-apps/webhook-secret';const p=process.env.WEBHOOK_PATH||'/sync';const h=process.env.LISTEN_ADDR||'127.0.0.1';const port=Number(process.env.LISTEN_PORT||8787);async function t(){try{return (await Bun.file(f).text()).trim()}catch{return ''}};Bun.serve({hostname:h,port,async fetch(req){const u=new URL(req.url);if(req.method!=='POST'||u.pathname!==p)return new Response('Not Found',{status:404});const s=req.headers.get('x-webhook-token')||u.searchParams.get('token')||'';const e=await t();if(e&&s!==e)return new Response('Unauthorized',{status:401});try{const r=Bun.spawnSync(['/run/current-system/sw/bin/systemctl','start','bun-monorepo-sync.service']);if(r.success)return new Response('ok\n');return new Response(r.stderr.toString(),{status:500})}catch(e){return new Response('error\n',{status:500})}}})})()"'';
+        ExecStart = ''${bun}/bin/bun ${webhookJs}'';
         Restart = "on-failure";
         RestartSec = 2;
       };
