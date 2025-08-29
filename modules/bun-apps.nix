@@ -135,6 +135,22 @@ in
       type = types.str;
       description = "Git URL of the monorepo containing Bun apps";
     };
+    # Optional authentication helpers for private repos
+    repoSshKeyFile = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = "Path to an SSH private key for cloning (use with git@ URLs).";
+    };
+    repoHttpsTokenFile = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = "Path to a file containing an HTTPS token for cloning (use with https:// URLs).";
+    };
+    repoHttpsUser = mkOption {
+      type = types.str;
+      default = "x-access-token";
+      description = "Username to pair with HTTPS token in repo URL auth (GitHub uses x-access-token).";
+    };
     branch = mkOption { type = types.str; default = "main"; };
     appsDir = mkOption { type = types.str; default = "apps"; };
     portBase = mkOption { type = types.int; default = 3000; };
@@ -197,7 +213,7 @@ in
       # Provide PATH with git and bun available
       path = [ pkgs.coreutils pkgs.bash pkgs.git bun ];
       # Journal logs make it easy: journalctl -u bun-app@myapp -f
-      wantedBy = [ "multi-user.target" ];
+      # Do not add wantedBy for template units; instances are started by the sync service
     };
 
     # Monorepo sync service: runs at boot and on webhook
@@ -215,13 +231,31 @@ in
           PORT_BASE=${toString cfg.portBase}
           PORT_RANGE=${toString cfg.portRange}
 
+          # Auth for private repos (SSH or HTTPS)
+          url_use="$REPO_URL"
+          SSH_KEY="${if cfg.repoSshKeyFile != null then toString cfg.repoSshKeyFile else ""}"
+          HTTPS_TOKEN_FILE="${if cfg.repoHttpsTokenFile != null then toString cfg.repoHttpsTokenFile else ""}"
+          if [ -n "$SSH_KEY" ]; then
+            case "$REPO_URL" in
+              git@*) export GIT_SSH_COMMAND="ssh -i $SSH_KEY -o StrictHostKeyChecking=accept-new" ;;
+            esac
+          elif [ -n "$HTTPS_TOKEN_FILE" ]; then
+            case "$REPO_URL" in
+              https://*)
+                token="$(cat "$HTTPS_TOKEN_FILE")"
+                repopath="${REPO_URL#https://}"
+                url_use="https://${cfg.repoHttpsUser}:$token@$repopath"
+                ;;
+            esac
+          fi
+
           basedir="/var/lib/bun-monorepo"
           srcdir="$basedir/src"
           mkdir -p "$srcdir"
 
           if [ ! -d "$srcdir/.git" ]; then
             echo "Cloning $REPO_URL (branch $BRANCH) into $srcdir"
-            git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$srcdir"
+            git clone --depth 1 --branch "$BRANCH" "$url_use" "$srcdir"
           else
             echo "Updating monorepo in $srcdir"
             git -C "$srcdir" fetch --depth 1 origin "$BRANCH" || git -C "$srcdir" fetch origin "$BRANCH"
@@ -294,7 +328,7 @@ CAD
         '');
       };
       wantedBy = [ "multi-user.target" ];
-      path = [ pkgs.coreutils pkgs.bash pkgs.git pkgs.jq bun ];
+      path = [ pkgs.coreutils pkgs.bash pkgs.git pkgs.jq pkgs.gnugrep pkgs.gawk bun ];
     };
 
     # Optional webhook to trigger sync via HTTP (secured by token)
