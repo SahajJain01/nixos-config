@@ -7,7 +7,7 @@
   # Monorepo auto-deployer configuration
   services.bunMonorepo = {
     enable = true;
-    repoUrl = "https://github.com/SahajJain01/bun-apps.git";
+    repoUrl = "git@github.com:SahajJain01/bun-apps.git";
     repoSshKeyFile = "/etc/bun-apps/monorepo_ssh";
     branch = "main";
     appsDir = "apps";
