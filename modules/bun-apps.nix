@@ -27,8 +27,8 @@ let
     fi
     if [ -z "$BRANCH" ]; then BRANCH=main; fi
     if [ -z "$SUBDIR" ]; then SUBDIR=.; fi
-    use_mono="${USE_MONOREPO:-0}"
-    mono_root="${MONOREPO_ROOT:-}"
+    use_mono="''${USE_MONOREPO:-0}"
+    mono_root="''${MONOREPO_ROOT:-}"
     set -u
 
     if [ "$use_mono" = "1" ] && [ -n "$mono_root" ]; then
@@ -89,7 +89,7 @@ let
     if [ -z "$START_CMD" ]; then START_CMD='bun run start'; fi
     set -u
 
-    if [ "${USE_MONOREPO:-0}" = "1" ] && [ -n "${MONOREPO_ROOT:-}" ]; then
+    if [ "''${USE_MONOREPO:-0}" = "1" ] && [ -n "''${MONOREPO_ROOT:-}" ]; then
       workdir="$MONOREPO_ROOT/$SUBDIR"
     else
       workdir="/var/lib/bun-apps/$inst/src/$SUBDIR"
