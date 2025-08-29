@@ -186,8 +186,8 @@ in
     # Systemd template for Bun apps
     systemd.services."bun-app@" = {
       description = "Bun app instance %i";
-      after = [ "network-online.target" ];
-      wants = [ "network-online.target" ];
+      after = [ "network-online.target" "bun-monorepo-sync.service" ];
+      wants = [ "network-online.target" "bun-monorepo-sync.service" ];
       serviceConfig = {
         Type = "simple";
         User = "bunapps";
