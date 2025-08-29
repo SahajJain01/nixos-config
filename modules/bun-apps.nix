@@ -111,11 +111,11 @@ let
       const p = process.env.WEBHOOK_PATH || '/sync';
       const h = process.env.LISTEN_ADDR || '127.0.0.1';
       const port = Number(process.env.LISTEN_PORT || 8787);
-      async function readToken(){ try { return (await Bun.file(f).text()).trim(); } catch { return ''; } }
+      async function readToken(){ try { return (await Bun.file(f).text()).trim(); } catch { return ""; } }
       Bun.serve({ hostname: h, port, async fetch(req){
         const u = new URL(req.url);
         if (req.method !== 'POST' || u.pathname !== p) return new Response('Not Found', { status: 404 });
-        const s = req.headers.get('x-webhook-token') || u.searchParams.get('token') || '';
+        const s = req.headers.get('x-webhook-token') || u.searchParams.get('token') || "";
         const e = await readToken();
         if (e && s !== e) return new Response('Unauthorized', { status: 401 });
         try {
