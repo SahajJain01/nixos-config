@@ -217,7 +217,7 @@ in
             build="$(jq -r '.build // empty' "$cfgf")"
             domain="$(jq -r '.domain // empty' "$cfgf")"
             if [ -z "$name" ]; then echo "Skipping $cfgf: missing name" >&2; continue; fi
-            relsub="${dir#"$srcdir/"}"
+            relsub="''${dir#"$srcdir/"}"
             if [ -z "$start" ] || [ "$start" = "null" ]; then start="bun run start"; fi
             if [ -z "$branchCfg" ] || [ "$branchCfg" = "null" ]; then branchUse="$BRANCH"; else branchUse="$branchCfg"; fi
 
