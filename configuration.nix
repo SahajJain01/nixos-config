@@ -41,7 +41,9 @@
     ];
   };
   systemd.tmpfiles.rules = [
-    "d /srv/apps 0755 github github -"
+    "d /srv/apps 0755 github github - -"
+    "d /srv/caddy 0755 root root - -"
+    "d /srv/caddy/conf.d 0750 github caddy - -"
   ];
 
   # Services
@@ -51,6 +53,21 @@
       PasswordAuthentication = false;
     };
   };
+
+  # Caddy reverse proxy (HTTPS via Let's Encrypt)
+  services.caddy = {
+    enable = true;
+    # Set your email for ACME/Let's Encrypt registration
+    email = "jainsahaj@gmail.com";
+    # Import per-app vhost snippets from a writeable dir
+    extraConfig = ''
+      import /srv/caddy/conf.d/*.caddy
+    '';
+    # Optional: use LE staging while testing to avoid rate limits
+    # acmeCA = "https://acme-staging-v02.api.letsencrypt.org/directory";
+  };
+
+  # Directory for dynamic Caddy vhost configs set above
 
   # Environment
   environment.systemPackages = with pkgs; [
