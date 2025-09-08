@@ -21,7 +21,6 @@
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [ 80 443 ];
-    allowedTCPPortRanges = [{ from = 3000; to = 3999; }];
     allowedUDPPorts = [];
   };
 
@@ -35,7 +34,7 @@
     home = "/home/github";
     createHome = true;
     linger = true;
-    extraGroups = [ "wheel" ];
+    extraGroups = [ "wheel" "caddy" ];
     openssh.authorizedKeys.keys = [
       "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDmQSQt8pJAuVrlfPSwMpjyrwtRrZhhv/mKNaW9PYCJz4TUaOEIRLDyVrWZlOSJlcfRxnxlBSg6QXqeUphYVe6SvES+cg7NYCLPK3YjWVEGe2YI+FeMhBUJIqjTyylNY1NY3aq6Q7mrT7cT0rqLtIdTk7DiVEsrINWg/yT+CAG9KbWuk+/aNXpGdPNfMJkHzt/25wCPpoOP2ByxbKKnH6qBWpnzZn/xbhm0XIZYxqc6iklVsCFIs2E2gvH1NINniuOgUsReWCrnFigEhH8P5V90Qxwr/65ttakNSV4SEnDFEMecGk9qAlKrg+N8oLQrLh1+Bs0f5NOKLlP7m+FmR6sV imported-openssh-key"
     ];
@@ -43,8 +42,16 @@
   systemd.tmpfiles.rules = [
     "d /srv/apps 0755 github github - -"
     "d /srv/caddy 0755 root root - -"
-    "d /srv/caddy/conf.d 0750 github caddy - -"
+    "d /srv/caddy/conf.d 0775 github caddy - -"
   ];
+
+  # Security
+  security.sudo = {
+    enable = true;
+    extraConfig = ''
+      github ALL=(root) NOPASSWD: /run/current-system/sw/bin/systemctl reload caddy
+    '';
+  };
 
   # Services
   services.openssh = {
