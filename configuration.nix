@@ -7,6 +7,7 @@
 
   # Nix
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.trusted-public-keys = [ "ci-deploy:VJtvUEyxn33j9CjDqp8TpWKafRabCHpPs/hMeIns3Xc=" ];
 
   # Boot
   boot.loader.systemd-boot.enable = true;
@@ -50,7 +51,7 @@
       PasswordAuthentication = false;
     };
   };
-  
+
   # Environment
   environment.systemPackages = with pkgs; [
     git
