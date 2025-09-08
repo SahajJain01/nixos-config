@@ -50,8 +50,7 @@
       PasswordAuthentication = false;
     };
   };
-  services.logind.lingerUsers = [ "github" ];
-
+  
   # Environment
   # environment.systemPackages = with pkgs; [
   #
