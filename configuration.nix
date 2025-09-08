@@ -52,9 +52,9 @@
   };
   
   # Environment
-  # environment.systemPackages = with pkgs; [
-  #
-  # ];
+  environment.systemPackages = with pkgs; [
+    git
+  ];
   environment.shellAliases = {
     nswitch = "nixos-rebuild switch";
   };
