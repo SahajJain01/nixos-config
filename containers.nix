@@ -30,11 +30,10 @@
       # };
 
       calendar = {
-        image = "ghcr.io/sahajjain01/fixed-calendar:latest";
+        image = "ghcr.io/sahajjain01/fixed-calendar:latest;";
         extraOptions = [ "--pull=always" ];
-        ports = [ "127.0.0.1:3000:3000" ];
+        ports = [ "3000:3000" ];
       };
     };
   };
-
 }

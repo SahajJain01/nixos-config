@@ -3,6 +3,7 @@
 {
   services.caddy = {
     enable = true;
+    email = "contact@sahajjain.com";
     virtualHosts."calendar.sahajjain.com".extraConfig = ''
       encode zstd gzip
       header {
