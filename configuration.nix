@@ -1,59 +1,20 @@
 { config, lib, pkgs, ... }:
+
 {
-  # Imports
   imports = [
     ./hardware-configuration.nix
+    ./firewall.nix
+    ./containers.nix
   ];
 
-  # Nix
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
-  nix.settings.trusted-public-keys = [ "ci-deploy:VJtvUEyxn33j9CjDqp8TpWKafRabCHpPs/hMeIns3Xc=" ];
+  nix.settings.trusted-users = [ "root" "deployer" ];
 
-  # Boot
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # Time
   time.timeZone = "Asia/Kolkata";
 
-  # Networking
-  networking.hostName = "nixos";
-  networking.firewall = {
-    enable = true;
-    allowedTCPPorts = [ 80 443 ];
-    allowedUDPPorts = [];
-  };
-
-  # Users
-  users.users.root.openssh.authorizedKeys.keys = [
-    "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDmQSQt8pJAuVrlfPSwMpjyrwtRrZhhv/mKNaW9PYCJz4TUaOEIRLDyVrWZlOSJlcfRxnxlBSg6QXqeUphYVe6SvES+cg7NYCLPK3YjWVEGe2YI+FeMhBUJIqjTyylNY1NY3aq6Q7mrT7cT0rqLtIdTk7DiVEsrINWg/yT+CAG9KbWuk+/aNXpGdPNfMJkHzt/25wCPpoOP2ByxbKKnH6qBWpnzZn/xbhm0XIZYxqc6iklVsCFIs2E2gvH1NINniuOgUsReWCrnFigEhH8P5V90Qxwr/65ttakNSV4SEnDFEMecGk9qAlKrg+N8oLQrLh1+Bs0f5NOKLlP7m+FmR6sV imported-openssh-key"
-  ];
-  users.users.github = {
-    isNormalUser = true;
-    description = "Deployment user for GitHub Actions";
-    home = "/home/github";
-    createHome = true;
-    linger = true;
-    extraGroups = [ "wheel" "caddy" ];
-    openssh.authorizedKeys.keys = [
-      "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDmQSQt8pJAuVrlfPSwMpjyrwtRrZhhv/mKNaW9PYCJz4TUaOEIRLDyVrWZlOSJlcfRxnxlBSg6QXqeUphYVe6SvES+cg7NYCLPK3YjWVEGe2YI+FeMhBUJIqjTyylNY1NY3aq6Q7mrT7cT0rqLtIdTk7DiVEsrINWg/yT+CAG9KbWuk+/aNXpGdPNfMJkHzt/25wCPpoOP2ByxbKKnH6qBWpnzZn/xbhm0XIZYxqc6iklVsCFIs2E2gvH1NINniuOgUsReWCrnFigEhH8P5V90Qxwr/65ttakNSV4SEnDFEMecGk9qAlKrg+N8oLQrLh1+Bs0f5NOKLlP7m+FmR6sV imported-openssh-key"
-    ];
-  };
-  systemd.tmpfiles.rules = [
-    "d /srv/apps 0755 github github - -"
-    "d /srv/caddy 0755 root root - -"
-    "d /srv/caddy/conf.d 0775 github caddy - -"
-  ];
-
-  # Security
-  security.sudo = {
-    enable = true;
-    extraConfig = ''
-      github ALL=(root) NOPASSWD: /run/current-system/sw/bin/systemctl reload caddy
-    '';
-  };
-
-  # Services
   services.openssh = {
     enable = true;
     settings = {
@@ -61,29 +22,37 @@
     };
   };
 
-  # Caddy reverse proxy (HTTPS via Let's Encrypt)
-  services.caddy = {
+  virtualisation.docker = {
     enable = true;
-    # Set your email for ACME/Let's Encrypt registration
-    email = "jainsahaj@gmail.com";
-    # Import per-app vhost snippets from a writeable dir
-    extraConfig = ''
-      import /srv/caddy/conf.d/*.caddy
-    '';
-    # Optional: use LE staging while testing to avoid rate limits
-    # acmeCA = "https://acme-staging-v02.api.letsencrypt.org/directory";
+    enableOnBoot = true;
+    autoPrune.enable = true;
   };
 
-  # Directory for dynamic Caddy vhost configs set above
+  networking.hostName = "nixos";
 
-  # Environment
-  environment.systemPackages = with pkgs; [
-    git
+  users.users.deployer = {
+    isNormalUser = true;
+    description = "Deploy user";
+    createHome = true;
+    extraGroups = [ "wheel" "docker" ];
+    openssh.authorizedKeys.keys = [
+      "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDmQSQt8pJAuVrlfPSwMpjyrwtRrZhhv/mKNaW9PYCJz4TUaOEIRLDyVrWZlOSJlcfRxnxlBSg6QXqeUphYVe6SvES+cg7NYCLPK3YjWVEGe2YI+FeMhBUJIqjTyylNY1NY3aq6Q7mrT7cT0rqLtIdTk7DiVEsrINWg/yT+CAG9KbWuk+/aNXpGdPNfMJkHzt/25wCPpoOP2ByxbKKnH6qBWpnzZn/xbhm0XIZYxqc6iklVsCFIs2E2gvH1NINniuOgUsReWCrnFigEhH8P5V90Qxwr/65ttakNSV4SEnDFEMecGk9qAlKrg+N8oLQrLh1+Bs0f5NOKLlP7m+FmR6sV imported-openssh-key"
+    ];
+  };
+
+  security.sudo.wheelNeedsPassword = false;
+
+  users.users.root.openssh.authorizedKeys.keys = [
+    "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDmQSQt8pJAuVrlfPSwMpjyrwtRrZhhv/mKNaW9PYCJz4TUaOEIRLDyVrWZlOSJlcfRxnxlBSg6QXqeUphYVe6SvES+cg7NYCLPK3YjWVEGe2YI+FeMhBUJIqjTyylNY1NY3aq6Q7mrT7cT0rqLtIdTk7DiVEsrINWg/yT+CAG9KbWuk+/aNXpGdPNfMJkHzt/25wCPpoOP2ByxbKKnH6qBWpnzZn/xbhm0XIZYxqc6iklVsCFIs2E2gvH1NINniuOgUsReWCrnFigEhH8P5V90Qxwr/65ttakNSV4SEnDFEMecGk9qAlKrg+N8oLQrLh1+Bs0f5NOKLlP7m+FmR6sV imported-openssh-key"
   ];
+
   environment.shellAliases = {
     nswitch = "nixos-rebuild switch";
   };
 
-  # Do not change this value unless you know what you are doing.
+  environment.systemPackages = with pkgs; [
+    git
+  ];
+
   system.stateVersion = "25.05";
 }
