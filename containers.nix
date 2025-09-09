@@ -32,18 +32,7 @@
       calendar = {
         image = "ghcr.io/sahajjain01/fixed-calendar:latest";
         extraOptions = [ "--pull=always" ];
-        ports = [ "3000:3000" ];
-      };
-
-      services.caddy = {
-        enable = true;
-        virtualHosts."calendar.sahajjain.com".extraConfig = ''
-          encode zstd gzip
-          header {
-            Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-          }
-          reverse_proxy 127.0.0.1:3000
-        '';
+        ports = [ "127.0.0.1:3000:3000" ];
       };
     };
   };

@@ -5,6 +5,7 @@
     ./hardware-configuration.nix
     ./firewall.nix
     ./containers.nix
+    ./caddy.nix
   ];
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
