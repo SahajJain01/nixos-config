@@ -18,6 +18,13 @@
       }
       reverse_proxy 127.0.0.1:3001
     '';
+    virtualHosts."lingscript.sahajjain.com".extraConfig = ''
+      encode zstd gzip
+      header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+      }
+      reverse_proxy 127.0.0.1:3002
+    '';
   };
 }
   

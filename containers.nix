@@ -40,6 +40,12 @@
         extraOptions = [ "--pull=always" ];
         ports = [ "3001:3000" ];
       };
+
+      lingscript = {
+        image = "ghcr.io/sahajjain01/ling-script:latest;";
+        extraOptions = [ "--pull=always" ];
+        ports = [ "3002:3000" ];
+      };
     };
   };
 }
