@@ -34,6 +34,12 @@
         extraOptions = [ "--pull=always" ];
         ports = [ "3000:3000" ];
       };
+
+      pizza = {
+        image = "ghcr.io/sahajjain01/pizza-calc:latest;";
+        extraOptions = [ "--pull=always" ];
+        ports = [ "3001:3000" ];
+      };
     };
   };
 }
