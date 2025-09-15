@@ -64,10 +64,12 @@
       root_url = "https://grafana.sahajjain.com/";
     };
     # Make dashboards viewable publicly (or via anonymous viewer)
+    # Flattened INI keys are required for multi-level sections like auth.anonymous
     settings = {
-      security = { allow_embedding = true; };
-      auth.anonymous = { enabled = true; org_role = "Viewer"; };
-      "public_dashboards" = { enabled = true; };
+      "security.allow_embedding" = true;
+      "auth.anonymous.enabled" = true;
+      "auth.anonymous.org_role" = "Viewer";
+      "public_dashboards.enabled" = true;
     };
     provision = {
       enable = true;
