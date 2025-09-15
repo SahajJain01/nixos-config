@@ -43,7 +43,7 @@
 
       # Bun apps (expect /metrics inside each container)
       {
-        job_name = "bun-apps";
+        job_name = "bun-services";
         metrics_path = "/metrics";
         # Use a stable label key `app` to avoid clashing with app-exported labels like `service`
         static_configs = [

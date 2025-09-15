@@ -13,7 +13,7 @@
       "title": "Requests per second (by app)",
       "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
       "targets": [
-        {"expr": "sum by (app)(rate(http_requests_total{app=~\"$app\"}[5m]))", "refId": "A"}
+        {"expr": "sum by (app)(rate(http_requests_total{job=\"bun-services\",app=~\"$app\"}[5m]))", "refId": "A"}
       ]
     },
     {
@@ -21,7 +21,7 @@
       "title": "Error rate (4xx/5xx RPS)",
       "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
       "targets": [
-        {"expr": "sum by (app)(rate(http_requests_total{app=~\"$app\",status=~\"4..|5..\"}[5m]))", "refId": "A"}
+        {"expr": "sum by (app)(rate(http_requests_total{job=\"bun-services\",app=~\"$app\",status=~\"4..|5..\"}[5m]))", "refId": "A"}
       ]
     },
     {
@@ -29,7 +29,7 @@
       "title": "Latency p95 (seconds)",
       "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
       "targets": [
-        {"expr": "histogram_quantile(0.95, sum by (le, app) (rate(http_request_duration_seconds_bucket{app=~\"$app\"}[5m])))", "refId": "A"}
+        {"expr": "histogram_quantile(0.95, sum by (le, app) (rate(http_request_duration_seconds_bucket{job=\"bun-services\",app=~\"$app\"}[5m])))", "refId": "A"}
       ]
     },
     {
@@ -37,7 +37,7 @@
       "title": "Latency p99 (seconds)",
       "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
       "targets": [
-        {"expr": "histogram_quantile(0.99, sum by (le, app) (rate(http_request_duration_seconds_bucket{app=~\"$app\"}[5m])))", "refId": "A"}
+        {"expr": "histogram_quantile(0.99, sum by (le, app) (rate(http_request_duration_seconds_bucket{job=\"bun-services\",app=~\"$app\"}[5m])))", "refId": "A"}
       ]
     },
     {
@@ -61,7 +61,7 @@
       "title": "Uptime (minutes)",
       "gridPos": {"h": 6, "w": 6, "x": 0, "y": 24},
       "targets": [
-        {"expr": "(time() - process_start_time_seconds{app=~\"$app\"}) / 60", "refId": "A"}
+        {"expr": "(time() - process_start_time_seconds{job=\"bun-services\",app=~\"$app\"}) / 60", "refId": "A"}
       ]
     },
     {
@@ -85,7 +85,7 @@
         "hide": 0,
         "datasource": "Prometheus",
         "refresh": 1,
-        "query": "label_values(http_requests_total, app)",
+        "query": "label_values(http_requests_total{job=\"bun-services\"}, app)",
         "includeAll": true,
         "multi": false,
         "allValue": ".*"
