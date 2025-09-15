@@ -217,7 +217,5 @@ jobs:
   - `journalctl -u oci-containers-cadvisor -e --no-pager`
 
 ## Roadmap / Ideas
-- Provision curated Grafana dashboards for host, Docker, and apps.
-- Set Grafana admin password via Nix secret (`services.grafana.settings.security`).
 - Add alerting rules and email/Slack notifications.
 
