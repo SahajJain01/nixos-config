@@ -45,14 +45,11 @@
       {
         job_name = "bun-apps";
         metrics_path = "/metrics";
-        static_configs = [{
-          targets = [
-            "127.0.0.1:3000" # calendar
-            "127.0.0.1:3001" # pizza
-            "127.0.0.1:3002" # lingscript
-          ];
-          labels = { app = "bun"; };
-        }];
+        static_configs = [
+          { targets = [ "127.0.0.1:3000" ]; labels = { app = "bun"; service = "calendar"; }; }
+          { targets = [ "127.0.0.1:3001" ]; labels = { app = "bun"; service = "pizza";    }; }
+          { targets = [ "127.0.0.1:3002" ]; labels = { app = "bun"; service = "lingscript";}; }
+        ];
       }
     ];
   };
@@ -66,6 +63,12 @@
       domain = "grafana.sahajjain.com";
       root_url = "https://grafana.sahajjain.com/";
     };
+    # Make dashboards viewable publicly (or via anonymous viewer)
+    settings = {
+      security = { allow_embedding = true; };
+      auth.anonymous = { enabled = true; org_role = "Viewer"; };
+      "public_dashboards" = { enabled = true; };
+    };
     provision = {
       enable = true;
       datasources.settings.datasources = [
@@ -77,6 +80,20 @@
           access = "proxy";
         }
       ];
+      dashboards.settings.providers = [
+        {
+          name = "bun-overview";
+          orgId = 1;
+          folder = "";
+          type = "file";
+          disableDeletion = false;
+          editable = true;
+          options = { path = "/etc/grafana-dashboards"; };
+        }
+      ];
     };
   };
+
+  # Ship dashboard JSONs to a known path for provisioning
+  environment.etc."grafana-dashboards/bun-overview.json".text = builtins.readFile ./dashboards/bun-overview.json;
 }

@@ -1,0 +1,103 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "iteration": 165,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Requests per second (by service)",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "targets": [
+        {"expr": "sum by (service)(rate(http_requests_total{service=~\"$service\"}[5m]))", "refId": "A"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Error rate (4xx/5xx RPS)",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "targets": [
+        {"expr": "sum by (service)(rate(http_requests_total{service=~\"$service\",status=~\"4..|5..\"}[5m]))", "refId": "A"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Latency p95 (seconds)",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.95, sum by (le, service) (rate(http_request_duration_seconds_bucket{service=~\"$service\"}[5m])))", "refId": "A"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Latency p99 (seconds)",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.99, sum by (le, service) (rate(http_request_duration_seconds_bucket{service=~\"$service\"}[5m])))", "refId": "A"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Container CPU (cores)",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+      "targets": [
+        {"expr": "sum by (name)(rate(container_cpu_usage_seconds_total{name=~\"/(calendar|pizza|lingscript).*\"}[5m]))", "refId": "A"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Container Memory (bytes)",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+      "targets": [
+        {"expr": "container_memory_usage_bytes{name=~\"/(calendar|pizza|lingscript).*\"}", "refId": "A"}
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Uptime (minutes)",
+      "gridPos": {"h": 6, "w": 6, "x": 0, "y": 24},
+      "targets": [
+        {"expr": "(time() - process_start_time_seconds{service=~\"$service\"}) / 60", "refId": "A"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Node CPU (%)",
+      "gridPos": {"h": 6, "w": 18, "x": 6, "y": 24},
+      "targets": [
+        {"expr": "100 - (avg by (instance)(rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)", "refId": "A"}
+      ]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 36,
+  "style": "dark",
+  "tags": ["bun", "apps"],
+  "templating": {
+    "list": [
+      {
+        "name": "service",
+        "type": "query",
+        "hide": 0,
+        "datasource": "Prometheus",
+        "refresh": 1,
+        "query": "label_values(http_requests_total, service)",
+        "includeAll": true,
+        "multi": false,
+        "allValue": ".*"
+      }
+    ]
+  },
+  "time": {"from": "now-6h", "to": "now"},
+  "timepicker": {},
+  "timezone": "",
+  "title": "Bun Apps Overview",
+  "uid": "bun-apps-overview",
+  "version": 1,
+  "weekStart": ""
+}
+
