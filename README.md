@@ -1,6 +1,6 @@
 <div align="center">
 
-# NixOS Docker + Caddy (HTTPS) — Flake‑Powered Infra
+# NixOS Homelab: Docker + Caddy + Prometheus + Grafana
 
 <a href="https://nixos.org/">
   <img src="https://img.shields.io/badge/NixOS-25.05-5277C3?logo=nixos&logoColor=white" alt="NixOS" />
@@ -14,14 +14,17 @@
 <a href="https://caddyserver.com/">
   <img src="https://img.shields.io/badge/Caddy-Reverse%20Proxy-00C7B7?logo=caddy&logoColor=white" alt="Caddy" />
 </a>
-<a href="https://letsencrypt.org/">
-  <img src="https://img.shields.io/badge/ACME-Let's%20Encrypt-003A70?logo=letsencrypt&logoColor=white" alt="Let's Encrypt" />
+<a href="https://prometheus.io/">
+  <img src="https://img.shields.io/badge/Prometheus-Metrics-E6522C?logo=prometheus&logoColor=white" alt="Prometheus" />
+</a>
+<a href="https://grafana.com/">
+  <img src="https://img.shields.io/badge/Grafana-Dashboards-F46800?logo=grafana&logoColor=white" alt="Grafana" />
 </a>
 <a href="https://www.arm.com/">
-  <img src="https://img.shields.io/badge/ARM-aarch64-0091BD?logo=arm&logoColor=white" alt="ARM aarch64" />
+  <img src="https://img.shields.io/badge/Arch-aarch64-0091BD?logo=arm&logoColor=white" alt="aarch64" />
 </a>
-<a href="https://github.com/features/actions">
-  <img src="https://img.shields.io/badge/GitHub%20Actions-nixos--rebuild-2088FF?logo=githubactions&logoColor=white" alt="GitHub Actions" />
+<a href="https://img.shields.io/website?url=https%3A%2F%2Fgrafana.sahajjain.com">
+  <img src="https://img.shields.io/website?url=https%3A%2F%2Fgrafana.sahajjain.com&label=grafana.sahajjain.com" alt="Grafana URL" />
 </a>
 
 <br/>
@@ -37,14 +40,20 @@
 
 ---
 
-Production‑ready NixOS template for running Dockerized apps behind Caddy with automatic HTTPS, strict TLS, and a simple flake‑based workflow. Containers bind only to loopback; Caddy is the single public entrypoint.
+Production-ready, secure-by-default NixOS configuration for running Dockerized apps behind Caddy with automatic HTTPS and first-class observability (Prometheus + Grafana). Containers bind to loopback; Caddy is the only public entrypoint.
 
 ## Highlights
-- Declarative containers: `virtualisation.oci-containers` in `containers.nix`.
-- Secure edge: Caddy TLS with ACME, HSTS, HTTP→HTTPS.
-- Minimal surface: loopback bindings; only 80/443 exposed.
-- Reproducible infra: flake‑pinned NixOS configuration.
-- CI‑friendly: rebuild remotely via `nixos-rebuild switch` over SSH.
+- Declarative containers via `virtualisation.oci-containers` in `containers.nix`.
+- Secure edge: Caddy TLS + ACME + HSTS on ports 80/443 only.
+- Observability: Prometheus server, Node Exporter, Docker engine metrics, cAdvisor, and Grafana pre-provisioned.
+- Reproducible infra: pinned Nix flake with aarch64 target.
+- Simple ops: `nswitch` alias for `nixos-rebuild switch`.
+
+## Domains
+- calendar.sahajjain.com → `127.0.0.1:3000`
+- pizza.sahajjain.com → `127.0.0.1:3001`
+- lingscript.sahajjain.com → `127.0.0.1:3002`
+- grafana.sahajjain.com → `127.0.0.1:3030`
 
 ## Architecture
 
@@ -55,40 +64,110 @@ flowchart LR
     caddy[Caddy\nservices.caddy]
     docker[Docker Engine\nvirtualisation.docker]
     oci[Containers\nvirtualisation.oci-containers]
+    prom[Prometheus\nservices.prometheus]
+    graf[Grafana\nservices.grafana]
+    nodeexp[Node Exporter]
+    cad[cAdvisor]
   end
-  caddy -->|reverse_proxy 127.0.0.1:PORT| oci
-  ci((GitHub Actions)) -->|SSH\nnixos-rebuild switch| host
+  caddy -->|reverse_proxy 127.0.0.1:3000..3002| oci
+  caddy -->|reverse_proxy grafana.sahajjain.com| graf
+  graf -->|datasource| prom
+  prom -->|scrapes| nodeexp
+  prom -->|scrapes| cad
+  prom -->|scrapes| docker
+  prom -->|scrapes /metrics| oci
 ```
 
 ## Repo Layout
-- `containers.nix` — Docker containers, loopback port bindings.
-- `caddy.nix` — Caddy vhosts reverse proxying to `127.0.0.1:<port>`; ACME email configured.
-- `configuration.nix` — Host services (Docker, SSH, base OS).
-- `firewall.nix` — Opens only TCP `80` and `443`.
-- `flake.nix` — Flake outputs for NixOS system.
+- `flake.nix` – Flake outputs for the NixOS system (`aarch64-linux`).
+- `configuration.nix` – Core OS/services (Docker, SSH, users, Nix).
+- `hardware-configuration.nix` – Auto-generated hardware profile.
+- `firewall.nix` – Only TCP 80/443 open.
+- `containers.nix` – Docker containers and cAdvisor.
+- `caddy.nix` – Public vhosts; HTTPS and reverse proxying.
+- `monitoring.nix` – Prometheus, exporters, Grafana provisioning.
 
-## Prerequisites
-- DNS A/AAAA record for your domain points to this server.
-- NixOS with flakes enabled (already enabled here).
+## Getting Started
+1) Point DNS A/AAAA records to this server for all domains above.
+2) Apply the configuration: `sudo nixos-rebuild switch` (or `nswitch`).
+3) Visit your apps and Grafana:
+   - https://calendar.sahajjain.com, https://pizza.sahajjain.com, https://lingscript.sahajjain.com
+   - https://grafana.sahajjain.com (default admin/admin unless configured otherwise)
 
-## Usage
-- Apply config: `sudo nixos-rebuild switch` (alias: `nswitch`).
-- Verify services:
-  - `systemctl status caddy`
-  - `systemctl status docker-<name>` (replace `<name>` with your container)
-- Smoke tests:
-  - `curl -fsS http://127.0.0.1:<port> | head -n1`
-  - `curl -I https://<your-domain>`
+## Monitoring & Observability
+- Prometheus: `127.0.0.1:9090` (scrapes the targets below)
+- Node Exporter: `127.0.0.1:9100` (host metrics)
+- Docker Engine Metrics: `127.0.0.1:9323`
+- cAdvisor: `127.0.0.1:8080` (per-container metrics)
+- Bun app metrics: `/metrics` on app ports (3000/3001/3002)
+- Grafana: https://grafana.sahajjain.com (datasource pre-provisioned)
 
-## Customize
-- Add/modify containers in `containers.nix` under `virtualisation.oci-containers.containers`.
-  - Prefer immutable images via digest pinning: `image = "registry/repo@sha256:<digest>";`
-  - Keep `extraOptions = [ "--pull=always" ];` if desired.
-  - Bind ports to loopback: `ports = [ "127.0.0.1:<port>:<port>" ];`.
-- Add/modify vhosts in `caddy.nix` using `services.caddy.virtualHosts."<domain>".extraConfig` and `reverse_proxy 127.0.0.1:<port>`.
-- Set a valid ACME email in `services.caddy.email`.
+Quick checks
+```bash
+curl -fsS http://127.0.0.1:9090/-/ready && echo OK
+curl -fsS http://127.0.0.1:9100/metrics | head -n1
+curl -fsS http://127.0.0.1:9323/metrics | head -n1
+curl -fsS http://127.0.0.1:8080/metrics | head -n1
+```
 
-## CI: nixos‑rebuild over SSH (no deploy‑rs)
+### Instrumenting Bun Apps for /metrics
+Each Bun app should expose `GET /metrics` using `prom-client`. They already listen on the needed ports, so Prometheus scrapes them automatically.
+
+Minimal example (TypeScript):
+```ts
+import client from 'prom-client'
+
+// Singleton registry
+const register = new client.Registry()
+client.collectDefaultMetrics({ register })
+
+// Custom HTTP metrics
+const httpRequests = new client.Counter({
+  name: 'http_requests_total',
+  help: 'Total HTTP requests',
+  labelNames: ['method', 'path', 'status'] as const,
+})
+const httpLatency = new client.Histogram({
+  name: 'http_request_duration_seconds',
+  help: 'Request duration in seconds',
+  labelNames: ['method', 'path', 'status'] as const,
+  buckets: [0.01, 0.05, 0.1, 0.3, 0.5, 1, 2, 5],
+})
+register.registerMetric(httpRequests)
+register.registerMetric(httpLatency)
+
+const METRICS_ENABLED = process.env.METRICS_ENABLED !== 'false'
+
+Bun.serve({
+  port: 3000,
+  async fetch(req) {
+    const url = new URL(req.url)
+    if (METRICS_ENABLED && url.pathname === '/metrics') {
+      return new Response(await register.metrics(), {
+        headers: {
+          'Content-Type': register.contentType,
+          'Cache-Control': 'no-store',
+        },
+      })
+    }
+
+    const path = url.pathname
+    const method = req.method
+    const start = performance.now()
+    const res = new Response('ok')
+    const status = res.status.toString()
+    if (METRICS_ENABLED && path !== '/metrics') {
+      httpRequests.labels(method, path, status).inc()
+      httpLatency.labels(method, path, status).observe((performance.now() - start) / 1000)
+    }
+    return res
+  },
+})
+```
+
+Tip: Install the dependency in each app: `bun add prom-client`.
+
+## CI: nixos-rebuild over SSH (example)
 
 ```yaml
 name: Deploy
@@ -122,12 +201,23 @@ jobs:
 ```
 
 ## Security
-- Services listen only on loopback; Caddy is the only public entrypoint.
-- Only ports 80/443 are open; TLS is terminated at Caddy with HSTS enabled.
+- Services bind to loopback; Caddy is the only public entrypoint.
+- TLS termination with ACME and HSTS enabled.
+- Prometheus, exporters, and Grafana listen on localhost; Grafana is exposed via Caddy only.
 
 ## Troubleshooting
-- If you see “The option `virtualisation.oci-containers.containers.services.caddy` does not exist”, ensure Caddy lives in `caddy.nix` under `services.caddy`, not inside `containers.nix`.
-- Show a detailed trace: `nixos-rebuild switch --show-trace`.
-- Inspect logs:
+- `oci-containers` does not support `restartPolicy` (use container defaults).
+- Ensure image names have no stray semicolons (e.g., `:latest;` → `:latest`).
+- Full trace: `nixos-rebuild switch --show-trace`.
+- Logs:
   - `journalctl -u caddy -e --no-pager`
-  - `journalctl -u docker-<name> -e --no-pager`
+  - `journalctl -u prometheus -e --no-pager`
+  - `journalctl -u grafana -e --no-pager`
+  - `journalctl -u prometheus-node-exporter -e --no-pager`
+  - `journalctl -u oci-containers-cadvisor -e --no-pager`
+
+## Roadmap / Ideas
+- Provision curated Grafana dashboards for host, Docker, and apps.
+- Set Grafana admin password via Nix secret (`services.grafana.settings.security`).
+- Add alerting rules and email/Slack notifications.
+
