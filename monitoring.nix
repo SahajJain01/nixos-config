@@ -45,10 +45,11 @@
       {
         job_name = "bun-apps";
         metrics_path = "/metrics";
+        # Use a stable label key `app` to avoid clashing with app-exported labels like `service`
         static_configs = [
-          { targets = [ "127.0.0.1:3000" ]; labels = { app = "bun"; service = "calendar"; }; }
-          { targets = [ "127.0.0.1:3001" ]; labels = { app = "bun"; service = "pizza";    }; }
-          { targets = [ "127.0.0.1:3002" ]; labels = { app = "bun"; service = "lingscript";}; }
+          { targets = [ "127.0.0.1:3000" ]; labels = { app = "calendar"; }; }
+          { targets = [ "127.0.0.1:3001" ]; labels = { app = "pizza";    }; }
+          { targets = [ "127.0.0.1:3002" ]; labels = { app = "lingscript";}; }
         ];
       }
     ];

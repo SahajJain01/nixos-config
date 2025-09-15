@@ -10,10 +10,10 @@
   "panels": [
     {
       "type": "timeseries",
-      "title": "Requests per second (by service)",
+      "title": "Requests per second (by app)",
       "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
       "targets": [
-        {"expr": "sum by (service)(rate(http_requests_total{service=~\"$service\"}[5m]))", "refId": "A"}
+        {"expr": "sum by (app)(rate(http_requests_total{app=~\"$app\"}[5m]))", "refId": "A"}
       ]
     },
     {
@@ -21,7 +21,7 @@
       "title": "Error rate (4xx/5xx RPS)",
       "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
       "targets": [
-        {"expr": "sum by (service)(rate(http_requests_total{service=~\"$service\",status=~\"4..|5..\"}[5m]))", "refId": "A"}
+        {"expr": "sum by (app)(rate(http_requests_total{app=~\"$app\",status=~\"4..|5..\"}[5m]))", "refId": "A"}
       ]
     },
     {
@@ -29,7 +29,7 @@
       "title": "Latency p95 (seconds)",
       "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
       "targets": [
-        {"expr": "histogram_quantile(0.95, sum by (le, service) (rate(http_request_duration_seconds_bucket{service=~\"$service\"}[5m])))", "refId": "A"}
+        {"expr": "histogram_quantile(0.95, sum by (le, app) (rate(http_request_duration_seconds_bucket{app=~\"$app\"}[5m])))", "refId": "A"}
       ]
     },
     {
@@ -37,7 +37,7 @@
       "title": "Latency p99 (seconds)",
       "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
       "targets": [
-        {"expr": "histogram_quantile(0.99, sum by (le, service) (rate(http_request_duration_seconds_bucket{service=~\"$service\"}[5m])))", "refId": "A"}
+        {"expr": "histogram_quantile(0.99, sum by (le, app) (rate(http_request_duration_seconds_bucket{app=~\"$app\"}[5m])))", "refId": "A"}
       ]
     },
     {
@@ -61,7 +61,7 @@
       "title": "Uptime (minutes)",
       "gridPos": {"h": 6, "w": 6, "x": 0, "y": 24},
       "targets": [
-        {"expr": "(time() - process_start_time_seconds{service=~\"$service\"}) / 60", "refId": "A"}
+        {"expr": "(time() - process_start_time_seconds{app=~\"$app\"}) / 60", "refId": "A"}
       ]
     },
     {
@@ -80,12 +80,12 @@
   "templating": {
     "list": [
       {
-        "name": "service",
+        "name": "app",
         "type": "query",
         "hide": 0,
         "datasource": "Prometheus",
         "refresh": 1,
-        "query": "label_values(http_requests_total, service)",
+        "query": "label_values(http_requests_total, app)",
         "includeAll": true,
         "multi": false,
         "allValue": ".*"
@@ -100,4 +100,3 @@
   "version": 1,
   "weekStart": ""
 }
-
