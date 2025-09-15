@@ -101,6 +101,7 @@ flowchart LR
 - cAdvisor: `127.0.0.1:8080` (per-container metrics)
 - Bun app metrics: `/metrics` on app ports (3000/3001/3002)
 - Grafana: https://grafana.sahajjain.com (datasource pre-provisioned)
+  - Bun Apps Overview dashboard: https://grafana.sahajjain.com/d/bun-apps-overview/
 
 Quick checks
 ```bash
@@ -218,4 +219,3 @@ jobs:
 
 ## Roadmap / Ideas
 - Add alerting rules and email/Slack notifications.
-
