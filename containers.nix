@@ -64,7 +64,6 @@
           "/dev/disk/:/dev/disk:ro"
           "/sys/fs/cgroup:/sys/fs/cgroup:ro"
         ];
-        restartPolicy = "always";
       };
     };
   };
