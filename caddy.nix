@@ -25,6 +25,15 @@
       }
       reverse_proxy 127.0.0.1:3002
     '';
+
+    # Grafana reverse proxy
+    virtualHosts."grafana.sahajjain.com".extraConfig = ''
+      encode zstd gzip
+      header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+      }
+      reverse_proxy 127.0.0.1:3030
+    '';
   };
 }
   

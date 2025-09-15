@@ -46,6 +46,26 @@
         extraOptions = [ "--pull=always" ];
         ports = [ "3002:3000" ];
       };
+
+      # cAdvisor for per-container metrics (scraped by Prometheus)
+      cadvisor = {
+        image = "gcr.io/cadvisor/cadvisor:latest";
+        extraOptions = [
+          "--pull=always"
+          "--privileged"
+          "--device=/dev/kmsg"
+        ];
+        ports = [ "127.0.0.1:8080:8080" ];
+        volumes = [
+          "/:/rootfs:ro"
+          "/var/run:/var/run:rw"
+          "/sys:/sys:ro"
+          "/var/lib/docker/:/var/lib/docker:ro"
+          "/dev/disk/:/dev/disk:ro"
+          "/sys/fs/cgroup:/sys/fs/cgroup:ro"
+        ];
+        restartPolicy = "always";
+      };
     };
   };
 }

@@ -6,6 +6,7 @@
     ./firewall.nix
     ./containers.nix
     ./caddy.nix
+    ./monitoring.nix
   ];
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
