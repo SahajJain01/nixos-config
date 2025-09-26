@@ -62,8 +62,10 @@
     # Align Kasm container user mapping with the primary login user.
     uid = 1000;
     gid = 1000;
-    postgresPassword = "change-this-postgres-password";
-    redisPassword = "change-this-redis-password";
+    postgresPassword = "TempKasmPg#2024";
+    redisPassword = "TempKasmRedis#2024";
+    publicPort = 8443;
+    rdpPort = 3390;
   };
 
   system.stateVersion = "25.05";
