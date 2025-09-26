@@ -7,6 +7,7 @@
     ./containers.nix
     ./caddy.nix
     ./monitoring.nix
+    ./kasm.nix
   ];
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
@@ -55,6 +56,15 @@
   environment.systemPackages = with pkgs; [
     git
   ];
+
+  services.kasm = {
+    enable = true;
+    # Align Kasm container user mapping with the primary login user.
+    uid = 1000;
+    gid = 1000;
+    postgresPassword = "change-this-postgres-password";
+    redisPassword = "change-this-redis-password";
+  };
 
   system.stateVersion = "25.05";
 }
