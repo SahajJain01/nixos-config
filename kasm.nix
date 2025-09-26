@@ -47,8 +47,8 @@ in {
 
     sha256 = lib.mkOption {
       type = lib.types.str;
-      default = "qw3pinzb95i7lmvw10n8ib9w3zgbhg7lvcj31317b1csfhp7vgch";
-      description = "Nix base32 hash for the release archive.";
+      default = "sha256-xwd42+tJYnpXfAgsiK08H964PPTbJDCMJ1hZp0Ln29k=";
+      description = "Hash for the release archive (supports new-style sha256-* strings).";
     };
 
     stateDir = lib.mkOption {
