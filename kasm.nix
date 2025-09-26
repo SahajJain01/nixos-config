@@ -13,10 +13,7 @@ let
     mkdir -p work
     tar -xzf ${kasmArchive} -C work
     substituteInPlace work/kasm_release/docker/docker-compose-all.yaml \
-      --replace "POSTGRES_PASSWORD: changeme" "POSTGRES_PASSWORD: ${cfg.postgresPassword}" \
-      --replace "REDIS_PASSWORD: changeme" "REDIS_PASSWORD: ${cfg.redisPassword}" \
-      --replace '"443:443"' '"${lib.toString cfg.publicPort}:${lib.toString cfg.containerHttpsPort}"' \
-      --replace '"3389:3389"' '"${lib.toString cfg.rdpPort}:${lib.toString cfg.containerRdpPort}"'
+      --replace '"443:443"' '"8443:443"'
     mkdir -p "$out"
     cp -a work/kasm_release/. "$out"/
   '';
