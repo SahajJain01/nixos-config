@@ -47,7 +47,7 @@ in {
 
     sha256 = lib.mkOption {
       type = lib.types.str;
-      default = "1iq7g3dynjb2g9bpq21ci2nkq7yyp0yg9nr46262fn2rlx1fgnyr";
+      default = "qw3pinzb95i7lmvw10n8ib9w3zgbhg7lvcj31317b1csfhp7vgch";
       description = "Nix base32 hash for the release archive.";
     };
 
